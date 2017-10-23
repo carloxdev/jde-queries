@@ -1,0 +1,165 @@
+
+  CREATE MATERIALIZED VIEW "NUVPD"."VM_CC" ("BENEFICIARIO", "BENEFICIARIO_DESC", "BENEFICIARIO_CLASE5", "BENEFICIARIO_CLASE5_DESC", "UN", "UN_DESC", "UN_PROYECTO", "UN_PROYECTO_DESC", "UN_PROYECTO_ZONA", "UN_PROYECTO_TIPO", "UN_PROYECTO_ESTADO", "ANIO", "PERIODO", "COMPANIA", "DOC_TIPO", "CUENTA", "CUENTA_NUMERO", "CUENTA_DESC", "CUENTA_CLASE_DESC", "CUENTA_TIPO", "CUENTA_FLUJO", "TOTAL", "ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE")
+  ORGANIZATION HEAP PCTFREE 10 PCTUSED 0 INITRANS 2 MAXTRANS 255 
+ NOCOMPRESS LOGGING
+  STORAGE(INITIAL 65536 NEXT 1048576 MINEXTENTS 1 MAXEXTENTS 2147483645
+  PCTINCREASE 0 FREELISTS 1 FREELIST GROUPS 1
+  BUFFER_POOL DEFAULT FLASH_CACHE DEFAULT CELL_FLASH_CACHE DEFAULT)
+  TABLESPACE "USERS" 
+  BUILD IMMEDIATE
+  USING INDEX 
+  REFRESH FORCE ON DEMAND START WITH sysdate+0 NEXT SYSDATE +1
+  USING DEFAULT LOCAL ROLLBACK SEGMENT
+  USING ENFORCED CONSTRAINTS DISABLE QUERY REWRITE
+  AS SELECT PAGOS.BENEFICIARIO,
+       NVL (CLIENT.DESCRIPCION, '-') AS BENEFICIARIO_DESC,
+       NVL (CLIENT.CLASE5, '-') AS BENEFICIARIO_CLASE5,
+       NVL (CLIENT.CLASE5_DESC, '-') AS BENEFICIARIO_CLASE5_DESC,
+       NVL (ASIENTOS.CUENTA_UN, '-') AS UN,
+       NVL (TRIM (CENTRO.MCDL01), '-') AS UN_DESC,
+       NVL (TRIM (CENTRO.MCRP01), '-') AS UN_PROYECTO,
+       NVL (TRIM (PROYECTO.DRDL01), '-') AS UN_PROYECTO_DESC,
+       NVL (TRIM (PROYECTO.DRDL02), '-') AS UN_PROYECTO_ZONA,
+       NVL (TRIM (PROYECTO.DRSPHD), '-') AS UN_PROYECTO_TIPO,
+       NVL (TRIM (PROYECTO.DRHRDC), '-') AS UN_PROYECTO_ESTADO,
+       PAGOS.ANIO,
+       PAGOS.PERIODO,
+       PAGOS.DOC_COMPANIA AS COMPANIA,
+       PAGOS.DOC_TIPO,
+       NVL (ASIENTOS.CUENTA, '-') AS CUENTA,
+       NVL (ASIENTOS.CUENTA_NUMERO, ' ') AS CUENTA_NUMERO,
+       NVL (ASIENTOS.CUENTA_DESC, '-') AS CUENTA_DESC,
+       NVL (ASIENTOS.CUENTA_CLASE_DESC, 'SIN CLASIFICACION')
+          AS CUENTA_CLASE_DESC,
+       NVL (ASIENTOS.CUENTA_TIPO, 'SIN TIPO') AS CUENTA_TIPO,
+       NVL (ASIENTOS.CUENTA_FLUJO, 'SIN FLUJO') AS CUENTA_FLUJO,
+       ROUND (PAGOS.MONTO_MX * ASIENTOS.PORCENTAJE, 2) AS TOTAL,
+       CASE
+          WHEN PAGOS.PERIODO = 1
+          THEN
+             ROUND (PAGOS.MONTO_MX * ASIENTOS.PORCENTAJE, 2)
+          ELSE
+             0
+       END
+          ENERO,
+       CASE
+          WHEN PAGOS.PERIODO = 2
+          THEN
+             ROUND (PAGOS.MONTO_MX * ASIENTOS.PORCENTAJE, 2)
+          ELSE
+             0
+       END
+          FEBRERO,
+       CASE
+          WHEN PAGOS.PERIODO = 3
+          THEN
+             ROUND (PAGOS.MONTO_MX * ASIENTOS.PORCENTAJE, 2)
+          ELSE
+             0
+       END
+          MARZO,
+       CASE
+          WHEN PAGOS.PERIODO = 4
+          THEN
+             ROUND (PAGOS.MONTO_MX * ASIENTOS.PORCENTAJE, 2)
+          ELSE
+             0
+       END
+          ABRIL,
+       CASE
+          WHEN PAGOS.PERIODO = 5
+          THEN
+             ROUND (PAGOS.MONTO_MX * ASIENTOS.PORCENTAJE, 2)
+          ELSE
+             0
+       END
+          MAYO,
+       CASE
+          WHEN PAGOS.PERIODO = 6
+          THEN
+             ROUND (PAGOS.MONTO_MX * ASIENTOS.PORCENTAJE, 2)
+          ELSE
+             0
+       END
+          JUNIO,
+       CASE
+          WHEN PAGOS.PERIODO = 7
+          THEN
+             ROUND (PAGOS.MONTO_MX * ASIENTOS.PORCENTAJE, 2)
+          ELSE
+             0
+       END
+          JULIO,
+       CASE
+          WHEN PAGOS.PERIODO = 8
+          THEN
+             ROUND (PAGOS.MONTO_MX * ASIENTOS.PORCENTAJE, 2)
+          ELSE
+             0
+       END
+          AGOSTO,
+       CASE
+          WHEN PAGOS.PERIODO = 9
+          THEN
+             ROUND (PAGOS.MONTO_MX * ASIENTOS.PORCENTAJE, 2)
+          ELSE
+             0
+       END
+          SEPTIEMBRE,
+       CASE
+          WHEN PAGOS.PERIODO = 10
+          THEN
+             ROUND (PAGOS.MONTO_MX * ASIENTOS.PORCENTAJE, 2)
+          ELSE
+             0
+       END
+          OCTUBRE,
+       CASE
+          WHEN PAGOS.PERIODO = 11
+          THEN
+             ROUND (PAGOS.MONTO_MX * ASIENTOS.PORCENTAJE, 2)
+          ELSE
+             0
+       END
+          NOVIEMBRE,
+       CASE
+          WHEN PAGOS.PERIODO = 12
+          THEN
+             ROUND (PAGOS.MONTO_MX * ASIENTOS.PORCENTAJE, 2)
+          ELSE
+             0
+       END
+          DICIEMBRE
+  FROM NUVPD.VIEW_IPAGOS PAGOS
+       LEFT OUTER JOIN NUVPD.VIEW_IASIENTOS ASIENTOS
+          ON     ASIENTOS.DOC_COMPANIA = PAGOS.DOC_COMPANIA
+             AND ASIENTOS.DOC_TIPO = PAGOS.DOC_TIPO
+             AND ASIENTOS.DOC = PAGOS.DOC
+             
+       LEFT OUTER JOIN PRODDTA.F0006 CENTRO
+          ON TRIM (CENTRO.MCMCU) = ASIENTOS.CUENTA_UN
+       LEFT OUTER JOIN PRODCTL.F0005 PROYECTO
+          ON     PROYECTO.DRSY = '00'
+             AND PROYECTO.DRRT = '01'
+             AND TRIM (PROYECTO.DRKY) = TRIM (CENTRO.MCRP01)
+       LEFT OUTER JOIN (SELECT ADDRESS.ABAN8 AS CLAVE,
+                               NVL (ADDRESS.ABALPH, '-') AS DESCRIPCION,
+                               ADDRESS.ABAT1 AS TIPO,
+                               
+                               NVL (TRIM (TIPO.DRDL01), '-') AS TIPO_DESC,
+                               NVL (TRIM (ADDRESS.ABCLASS05), '-') AS CLASE5,
+                               NVL (TRIM (CLASE5.DRDL01), '-') AS CLASE5_DESC
+                          FROM PRODDTA.F0101 ADDRESS
+                               LEFT OUTER JOIN PRODCTL.F0005 TIPO
+                                  ON TIPO.DRSY = '01' AND TIPO.DRRT = 'ST'
+                                     AND TRIM (TIPO.DRKY) =
+                                            TRIM (ADDRESS.ABAT1)
+                               LEFT OUTER JOIN PRODCTL.F0005 CLASE5
+                                  ON CLASE5.DRSY = '01'
+                                     AND CLASE5.DRRT = 'CE'
+                                     AND TRIM (CLASE5.DRKY) =
+                                            TRIM (ADDRESS.ABCLASS05)
+                         WHERE 1 = 1) CLIENT
+          ON CLIENT.CLAVE = PAGOS.BENEFICIARIO;
+
+   COMMENT ON MATERIALIZED VIEW "NUVPD"."VM_CC"  IS 'snapshot table for snapshot NUVPD.VM_CC';

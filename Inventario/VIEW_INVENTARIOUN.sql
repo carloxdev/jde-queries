@@ -1,0 +1,38 @@
+
+  CREATE OR REPLACE FORCE EDITIONABLE VIEW "NUVPD"."VIEW_INVENTARIOUN" ("COSTOUNIAVG", "PROYECTO_CVE", "PROYECTO_DESC", "COSTOUNIMIN", "COSTOUNIMAX", "CANTIDAD_RECEP") AS 
+  SELECT SUM(ROUND(costouniavg, 2)) as costouniavg ,  
+       TRIM(PROYECTO_CVE) AS PROYECTO_CVE, 
+       PROYECTO_DESC,  
+       SUM(ROUND(COSTOUNIMIN, 2)) as costounimin,  
+       SUM(ROUND(COSTOUNIMAX, 2)) as costounimax,  
+       SUM(ROUND(CANTIDAD_RECEP, 2)) as cantidad_recep  
+FROM (                   
+       SELECT ILLITM, CONCAT (IMDSC1 ,IMDSC2) AS MERCANCIA,  
+              IMGLPT,  
+              PROYECTO.DRKY AS PROYECTO_CVE,  
+              PROYECTO.DRDL01 as PROYECTO_DESC,  
+              MCDC,  
+              MAX( CASE WHEN PRRCDJ <> 0 THEN TO_DATE(1900000 + PRRCDJ,'YYYYDDD') END) AS FECHA_RECEPCION,  
+              SUM (proddta.F4111.ILTRQT/10000  ) AS CANTIDAD_RECEP,  
+              MIN(CASE WHEN proddta.F4111.ILUNCS > 0 THEN proddta.F4111.ILUNCS/10000  END) COSTOUNIMIN,  
+              AVG(CASE WHEN proddta.F4111.ILUNCS > 0 THEN proddta.F4111.ILUNCS/10000  END) COSTOUNIAVG,  
+              MAX(CASE WHEN proddta.F4111.ILUNCS > 0 THEN proddta.F4111.ILUNCS/10000  END) COSTOUNIMAX  
+      FROM proddta.F4111  
+      LEFT JOIN proddta.F4101 ON IMLITM = ILLITM  
+      LEFT JOIN(  
+                SELECT prlitm,prmcu, MAX (PRRCDJ) AS PRRCDJ  
+                FROM PRODDTA.F43121  
+                GROUP BY prlitm,prmcu  
+                )  RECEP ON ILLITM = prlitm  and  ILMCU = prmcu  
+      LEFT JOIN  prodctl.F0005 ON drky = CONCAT('      ',IMGLPT) AND DRSY='41' AND DRRT='9'  
+      LEFT OUTER JOIN PRODDTA.F0006 SUCURSAL  ON SUCURSAL.MCMCU = ILMCU  
+      LEFT OUTER JOIN PRODCTL.F0005 PROYECTO   
+                  ON PROYECTO.DRSY = '00'   
+                  AND PROYECTO.DRRT = '01'  
+                  AND TRIM(PROYECTO.DRKY) = TRIM(SUCURSAL.MCRP01)    
+      GROUP BY  ILLITM,  CONCAT (IMDSC1 ,IMDSC2) ,IMGLPT, PROYECTO.DRKY, PROYECTO.DRDL01 ,MCDC, CASE WHEN PRRCDJ <> 0 THEN TO_DATE(1900000 + PRRCDJ, 'YYYYDDD') END  
+      having SUM (proddta.F4111.ILTRQT/10000  )  >0                   
+)      
+WHERE 1=1  
+GROUP BY PROYECTO_CVE, PROYECTO_DESC   
+ORDER BY 1 desc  ;
